@@ -439,20 +439,17 @@ import androidx.fragment.app.Fragment
 import com.canteenmanagment.MainActivity
 import com.canteenmanagment.databinding.FragmentProfileBinding
 import com.canteenmanagment.ui.FoodList.FoodListActivity
-import com.canteenmanagment.ui.UserOrder.UserOrder
 import com.google.firebase.auth.FirebaseAuth
-
 
 class ProfileFragment : Fragment() {
 
-    private var _binding : FragmentProfileBinding? = null
+    private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
 
         FirebaseAuth.getInstance().currentUser.let { firebaseUser ->
@@ -469,38 +466,30 @@ class ProfileFragment : Fragment() {
             activity?.finish()
         }
 
-        binding.TVMyOrder.setOnClickListener {
-            val i = Intent(context,UserOrder::class.java)
-            startActivity(i)
-        }
-
-        val versionName = context!!.packageManager
-            .getPackageInfo(context!!.packageName, 0).versionName
-
-        binding.TVVersion.text = "V" + versionName
+        // Removed TVMyOrder click listener as MyOrder is now handled in HomeActivity
+        val versionName = requireContext().packageManager
+            .getPackageInfo(requireContext().packageName, 0).versionName
+        binding.TVVersion.text = "V$versionName"
 
         binding.TVFav.setOnClickListener {
-            val i = Intent(context,FoodListActivity::class.java)
-            i.putExtra(FAVOURITE,true)
+            val i = Intent(context, FoodListActivity::class.java)
+            i.putExtra(FAVOURITE, true)
             startActivity(i)
         }
-
-
-
 
         return binding.root
     }
 
-    override fun onDestroy() {
+    override fun onDestroyView() {
         _binding = null
-        super.onDestroy()
+        super.onDestroyView()
     }
 
-    companion object{
+    companion object {
         const val FAVOURITE = "Favourite"
     }
-
 }
+
 ========================================
 
 File: app/src/main/java/com/canteenmanagment/Fragment/MenuFragment.kt
@@ -696,7 +685,7 @@ class HomeFragment : Fragment() {
         addCartCustomDialog = AddCartCustomDialog(activity as Activity, { food ->  addToFav(food) },{ food ->  removeFromFav(food) })
 
 
-        viewmodel.pastFoodList.observe(this, Observer {
+        viewmodel.pastFoodList.observe(viewLifecycleOwner, Observer {
             if (it.isNotEmpty())
                 binding.textView9.visibility = View.VISIBLE
 
@@ -716,7 +705,7 @@ class HomeFragment : Fragment() {
             }
         })
 
-        viewmodel.favFoodList.observe(this, Observer {
+        viewmodel.favFoodList.observe(viewLifecycleOwner, Observer {
             favFoodList = it as MutableList<Food>
 
             if (it.isNotEmpty())
@@ -739,7 +728,7 @@ class HomeFragment : Fragment() {
 
         })
 
-        viewmodel.foodList.observe(this, Observer {
+        viewmodel.foodList.observe(viewLifecycleOwner, Observer {
 
             if (it.isNotEmpty()){
                 binding.TVGreetings.visibility = View.VISIBLE
@@ -1006,13 +995,12 @@ package com.canteenmanagment.ui
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
-import androidx.databinding.DataBindingUtil.setContentView
 import com.canteenmanagment.BaseActivity.BaseActivity
-import com.canteenmanagment.Fragment.Home.HomeFragment
 import com.canteenmanagment.Fragments.MenuFragment
 import com.canteenmanagment.Fragments.ProfileFragment
 import com.canteenmanagment.R
 import com.canteenmanagment.databinding.ActivityHomeBinding
+import com.canteenmanagment.ui.UserOrder.UserOrderFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeActivity : BaseActivity() {
@@ -1025,14 +1013,14 @@ class HomeActivity : BaseActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_home)
         setContentView(binding.root)
 
-        // Load the default fragment
-        openFragment(HomeFragment())
-        binding.bottomNavigationView.selectedItemId = R.id.home
+        // Load the default fragment as UserOrderFragment
+        openFragment(UserOrderFragment())
+        binding.bottomNavigationView.selectedItemId = R.id.order
 
         // Set up navigation listener
         binding.bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.home -> openFragment(HomeFragment())
+                R.id.order -> openFragment(UserOrderFragment())
                 R.id.menu -> openFragment(MenuFragment())
                 R.id.profile -> openFragment(ProfileFragment())
                 else -> false
@@ -1045,6 +1033,7 @@ class HomeActivity : BaseActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit()
     }
 }
+
 
 ========================================
 
@@ -1760,56 +1749,64 @@ package com.canteenmanagment.ui.UserOrder
 
 import android.content.Context
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.canteenmanagment.R
 import com.canteenmanagment.databinding.ActivityUserOrderBinding
 import com.canteenmanagment.utils.OrderDetailDialog
 
-class UserOrder : AppCompatActivity() {
+class UserOrderFragment : Fragment() {
 
     private lateinit var viewmodel: UserOrderViewModel
     private lateinit var binding: ActivityUserOrderBinding
-    private val mContext: Context = this
     private lateinit var orderDetailDialog: OrderDetailDialog
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Initialize binding for the fragment
+        binding = DataBindingUtil.inflate(inflater, R.layout.activity_user_order, container, false)
 
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_user_order)
-        viewmodel = ViewModelProviders.of(this).get(UserOrderViewModel::class.java)
-        orderDetailDialog = OrderDetailDialog(this)
+        // ViewModel initialization
+        viewmodel = ViewModelProvider(this).get(UserOrderViewModel::class.java)
 
-        setContentView(binding.root)
+        // Initialize orderDetailDialog
+        orderDetailDialog = OrderDetailDialog(requireContext())
 
-        viewmodel.userPastOrderList.observe(this, Observer {
+        // Observing userPastOrderList and setting adapter
+        viewmodel.userPastOrderList.observe(viewLifecycleOwner, Observer {
             binding.RVPastOrder.adapter = PastOrderRecyclerViewAdapter(
                 viewmodel.getHashmapFromList(it)
             )
-
         })
 
-        viewmodel.userInProgressOrder.observe(this, Observer {
+        // Observing userInProgressOrder and setting adapter
+        viewmodel.userInProgressOrder.observe(viewLifecycleOwner, Observer {
             binding.RVPreparing.adapter = OnGoingOrderRecyclerViewAdapter(
                 viewmodel.getPastOrderListFromOrderList(it),
-                mContext
+                requireContext()
             ) { orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
         })
-        viewmodel.userReadyOrder.observe(this, Observer {
+
+        // Observing userReadyOrder and setting adapter
+        viewmodel.userReadyOrder.observe(viewLifecycleOwner, Observer {
             binding.RVReady.adapter = OnGoingOrderRecyclerViewAdapter(
                 viewmodel.getPastOrderListFromOrderList(it),
-                mContext
-            ){ orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
+                requireContext()
+            ) { orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
         })
 
-        binding.IMBack.setOnClickListener {
-            super.onBackPressed()
-        }
-
+        // Returning the root view of the binding
+        return binding.root
     }
 }
+
 ========================================
 
 File: app/src/main/java/com/canteenmanagment/BaseActivity/BaseActivity.kt
@@ -2047,9 +2044,9 @@ File: app/src/main/java/com/canteenmanagment/utils/OrderDetailDialog.kt
 ----------------------------------------
 package com.canteenmanagment.utils
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
@@ -2060,16 +2057,16 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 
-class OrderDetailDialog(val activity: Activity) {
+class OrderDetailDialog(val context: Context) {
 
     lateinit var alertDialog: Dialog
     private lateinit var binding: OrderDetailDiaologBoxBinding
 
     fun startDialog(orderId: String, transactionId: String) {
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = AlertDialog.Builder(context)
 
         // Initialize ViewBinding
-        binding = OrderDetailDiaologBoxBinding.inflate(LayoutInflater.from(activity))
+        binding = OrderDetailDiaologBoxBinding.inflate(LayoutInflater.from(context))
         val view = binding.root
 
         dialog.setView(view)
@@ -2092,7 +2089,9 @@ class OrderDetailDialog(val activity: Activity) {
     }
 
     fun stopDialog() {
-        alertDialog.dismiss()
+        if (::alertDialog.isInitialized && alertDialog.isShowing) {
+            alertDialog.dismiss()
+        }
     }
 
     // Function to generate QR code using Zxing
@@ -2116,6 +2115,7 @@ class OrderDetailDialog(val activity: Activity) {
         }
     }
 }
+
 
 ========================================
 
@@ -2828,8 +2828,8 @@ File: app/src/main/res/menu/bottom_menu.xml
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/home"
-        android:title="Home"
+        android:id="@+id/order"
+        android:title="order"
         android:icon="@drawable/ic_home_24px"
         app:cnb_iconColor="@color/colorPrimary"/>
 
