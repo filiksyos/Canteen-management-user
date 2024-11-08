@@ -1522,6 +1522,64 @@ class PastOrderRecyclerViewAdapter(val pastOrderMap : HashMap<String,MutableList
 }
 ========================================
 
+File: app/src/main/java/com/canteenmanagment/ui/UserOrder/UserOrderFragment.kt
+----------------------------------------
+package com.canteenmanagment.ui.UserOrder
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.canteenmanagment.R
+import com.canteenmanagment.databinding.ActivityUserOrderBinding
+import com.canteenmanagment.utils.OrderDetailDialog
+
+class UserOrderFragment : Fragment() {
+
+    private lateinit var viewmodel: UserOrderViewModel
+    private lateinit var binding: ActivityUserOrderBinding
+    private lateinit var orderDetailDialog: OrderDetailDialog
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Initialize binding for the fragment
+        binding = DataBindingUtil.inflate(inflater, R.layout.activity_user_order, container, false)
+
+        // ViewModel initialization
+        viewmodel = ViewModelProvider(this).get(UserOrderViewModel::class.java)
+
+        // Initialize orderDetailDialog with simplified parameters
+        orderDetailDialog = OrderDetailDialog(requireContext())
+
+        // Observing ongoing orders
+        viewmodel.userInProgressOrder.observe(viewLifecycleOwner, Observer { inProgressOrders ->
+            binding.RVPreparing.adapter = OnGoingOrderRecyclerViewAdapter(
+                inProgressOrders,
+                requireContext()
+            ) { orderId -> orderDetailDialog.startDialog(orderId) }
+        })
+
+        // Observing ready orders
+        viewmodel.userReadyOrder.observe(viewLifecycleOwner, Observer { readyOrders ->
+            binding.RVReady.adapter = OnGoingOrderRecyclerViewAdapter(
+                readyOrders,
+                requireContext()
+            ) { orderId -> orderDetailDialog.startDialog(orderId) }
+        })
+
+        // Returning the root view of the binding
+        return binding.root
+    }
+}
+
+========================================
+
 File: app/src/main/java/com/canteenmanagment/ui/UserOrder/PastOrderRecyclerView2Adapter.kt
 ----------------------------------------
 package com.canteenmanagment.ui.UserOrder
@@ -1575,113 +1633,31 @@ import androidx.lifecycle.liveData
 import com.canteenmanagment.canteen_managment_library.apiManager.FirebaseApiManager
 import com.canteenmanagment.canteen_managment_library.models.CartFood
 import com.canteenmanagment.canteen_managment_library.models.Order
-import com.canteenmanagment.helper.PastOrder
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 
-class UserOrderViewModel(activity: Application) : AndroidViewModel(activity) {
+class UserOrderViewModel(application: Application) : AndroidViewModel(application) {
 
-    var userPastOrderList: LiveData<List<Order>> = liveData {
-        FirebaseApiManager.getAllPastOrders().let {
-            if (it.isSuccess)
-                emit(it.data as List<Order>)
-            else
-                emit(listOf<Order>())
-        }
-    }
-
-    var userInProgressOrder : LiveData<List<Order>> = liveData {
+    // LiveData for ongoing orders
+    val userInProgressOrder: LiveData<List<Order>> = liveData {
         FirebaseApiManager.getInProgressOrder().let {
-            if (it.isSuccess)
-                emit(it.data as List<Order>)
-            else
-                emit(listOf<Order>())
+            if (it.isSuccess) emit(it.data as List<Order>)
+            else emit(listOf())
         }
     }
 
-    var userReadyOrder : LiveData<List<Order>> = liveData {
+    // LiveData for ready orders
+    val userReadyOrder: LiveData<List<Order>> = liveData {
         FirebaseApiManager.getReadyOrder().let {
-            if (it.isSuccess)
-                emit(it.data as List<Order>)
-            else
-                emit(listOf<Order>())
+            if (it.isSuccess) emit(it.data as List<Order>)
+            else emit(listOf())
         }
     }
 
-    fun getHashmapFromList(orderList: List<Order>): HashMap<String, MutableList<PastOrder>> {
-        var map: LinkedHashMap<String, MutableList<PastOrder>> = LinkedHashMap()
-
-        for (order in orderList) {
-
-            val cal: Calendar = Calendar.getInstance()
-            cal.timeInMillis = order.time ?: 0
-            val f = SimpleDateFormat("dd MMM,YYYY")
-            val date = f.format(cal.time)
-            val f2 = SimpleDateFormat("hh:mm aa")
-            val time = f2.format(cal.time)
-
-            val pastOrder: PastOrder = PastOrder(
-                id = order.id,
-                transactionId = order.transactionId,
-                foodList = order.foodList,
-                status = order.status,
-                time = time,
-                price = calculateTotalAmount(order.foodList!!)
-            )
-
-            if (map[date] == null) {
-                val list = mutableListOf<PastOrder>()
-                list.add(pastOrder)
-                map[date] = list
-            } else {
-                val list = map[date]!!
-                list.add(0,pastOrder)
-                map[date] = list
-            }
-
-        }
-
-        return map
+    // Calculate the total amount for an order
+    fun calculateTotalAmount(cartFoodList: MutableList<CartFood>): Int {
+        return cartFoodList.sumOf { it.quantity * (it.food.price ?: 0) }
     }
-
-    fun getPastOrderListFromOrderList(orderList : List<Order>) : MutableList<PastOrder> {
-
-        var pastOrderList : MutableList<PastOrder> = mutableListOf()
-
-        for(order in orderList){
-            val cal: Calendar = Calendar.getInstance()
-            cal.timeInMillis = order.time ?: 0
-            val f = SimpleDateFormat("dd MMM,YYYY")
-            val date = f.format(cal.time)
-            val f2 = SimpleDateFormat("hh:mm aa")
-            val time = f2.format(cal.time)
-
-            val pastOrder: PastOrder = PastOrder(
-                id = order.id,
-                transactionId = order.transactionId,
-                foodList = order.foodList,
-                status = order.status,
-                time = time,
-                price = calculateTotalAmount(order.foodList!!)
-            )
-
-            pastOrderList.add(pastOrder)
-        }
-
-        return pastOrderList
-    }
-
-    private fun calculateTotalAmount(cartFoodList: MutableList<CartFood>): Int {
-        var total = 0
-        for (cartFood in cartFoodList)
-            total += cartFood.quantity * cartFood.food.price!!
-
-        return total
-    }
-
 }
+
 ========================================
 
 File: app/src/main/java/com/canteenmanagment/ui/UserOrder/OnGoingOrderRecyclerViewAdapter.kt
@@ -1690,121 +1666,56 @@ package com.canteenmanagment.ui.UserOrder
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.canteenmanagment.canteen_managment_library.models.Order
 import com.canteenmanagment.databinding.ItemOngoingOrderLayoutBinding
-import com.canteenmanagment.databinding.ItemPastOrderLayout2Binding
-import com.canteenmanagment.helper.PastOrder
 
-class OnGoingOrderRecyclerViewAdapter(val onGoingOrderList : MutableList<PastOrder>,val mContext : Context, val openOrderDetailDialog : (orderId : String, transacnId : String)->Unit) : RecyclerView.Adapter<OnGoingOrderRecyclerViewAdapter.ViewHolder>() {
+class OnGoingOrderRecyclerViewAdapter(
+    private val onGoingOrderList: List<Order>,  // Changed to List<Order>
+    private val mContext: Context,
+    private val openOrderDetailDialog: (orderId: String) -> Unit
+) : RecyclerView.Adapter<OnGoingOrderRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
-        val binding = ItemOngoingOrderLayoutBinding.inflate(layoutInflater,parent,false)
+        val binding = ItemOngoingOrderLayoutBinding.inflate(layoutInflater, parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.binding.TVOrderId.text = onGoingOrderList[position].id
-        holder.binding.TVTransactionId.text = onGoingOrderList[position].transactionId
-        holder.binding.TVPrice.text = "${onGoingOrderList[position].price.toString()} Rs."
-        holder.binding.TVTime.text = onGoingOrderList[position].time
+        val order = onGoingOrderList[position]
 
-        var foodListString = ""
-        for(cartFood in onGoingOrderList[position].foodList!!)
-            foodListString += "\n${cartFood.food.name} X ${cartFood.quantity}"
+        holder.binding.TVOrderId.text = order.id ?: "N/A"
+        holder.binding.TVPrice.text = "${calculateTotalAmount(order.foodList ?: mutableListOf())} Rs."
+        holder.binding.TVTime.text = (order.time ?: "N/A").toString()
 
+        // Format food list as a string for display
+        val foodListString = order.foodList?.joinToString("\n") { cartFood ->
+            "${cartFood.food.name} X ${cartFood.quantity}"
+        } ?: "No items"
         holder.binding.TVOrderList.text = foodListString
 
-        if (onGoingOrderList[position].status.equals(Order.Status.READY.value)){
+        // Set order status and details with null safety
+        if (order.status == Order.Status.READY.value) {
             holder.binding.TVStatus.text = "Ready"
-            holder.binding.TVStatus.setTextColor( mContext.resources.getColor(android.R.color.holo_green_dark))
+            holder.binding.TVStatus.setTextColor(mContext.resources.getColor(android.R.color.holo_green_dark))
             holder.binding.CL.setOnClickListener {
-                openOrderDetailDialog(onGoingOrderList[position].id?:"",onGoingOrderList[position].transactionId?:"")
+                openOrderDetailDialog(order.id ?: "")
             }
-
-        }
-        else{
+        } else {
             holder.binding.TVStatus.text = "Preparing"
-            holder.binding.TVStatus.setTextColor( mContext.resources.getColor(android.R.color.holo_orange_dark))
+            holder.binding.TVStatus.setTextColor(mContext.resources.getColor(android.R.color.holo_orange_dark))
         }
-
     }
 
-    override fun getItemCount(): Int {
-        return onGoingOrderList.size
+    override fun getItemCount(): Int = onGoingOrderList.size
+
+    private fun calculateTotalAmount(cartFoodList: List<com.canteenmanagment.canteen_managment_library.models.CartFood>): Int {
+        return cartFoodList.sumOf { it.quantity * (it.food.price ?: 0) }
     }
 
-    class ViewHolder(var binding: ItemOngoingOrderLayoutBinding) : RecyclerView.ViewHolder(binding.root)
-
-
-}
-========================================
-
-File: app/src/main/java/com/canteenmanagment/ui/UserOrder/UserOrder.kt
-----------------------------------------
-package com.canteenmanagment.ui.UserOrder
-
-import android.content.Context
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import com.canteenmanagment.R
-import com.canteenmanagment.databinding.ActivityUserOrderBinding
-import com.canteenmanagment.utils.OrderDetailDialog
-
-class UserOrderFragment : Fragment() {
-
-    private lateinit var viewmodel: UserOrderViewModel
-    private lateinit var binding: ActivityUserOrderBinding
-    private lateinit var orderDetailDialog: OrderDetailDialog
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Initialize binding for the fragment
-        binding = DataBindingUtil.inflate(inflater, R.layout.activity_user_order, container, false)
-
-        // ViewModel initialization
-        viewmodel = ViewModelProvider(this).get(UserOrderViewModel::class.java)
-
-        // Initialize orderDetailDialog
-        orderDetailDialog = OrderDetailDialog(requireContext())
-
-        // Observing userPastOrderList and setting adapter
-        viewmodel.userPastOrderList.observe(viewLifecycleOwner, Observer {
-            binding.RVPastOrder.adapter = PastOrderRecyclerViewAdapter(
-                viewmodel.getHashmapFromList(it)
-            )
-        })
-
-        // Observing userInProgressOrder and setting adapter
-        viewmodel.userInProgressOrder.observe(viewLifecycleOwner, Observer {
-            binding.RVPreparing.adapter = OnGoingOrderRecyclerViewAdapter(
-                viewmodel.getPastOrderListFromOrderList(it),
-                requireContext()
-            ) { orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
-        })
-
-        // Observing userReadyOrder and setting adapter
-        viewmodel.userReadyOrder.observe(viewLifecycleOwner, Observer {
-            binding.RVReady.adapter = OnGoingOrderRecyclerViewAdapter(
-                viewmodel.getPastOrderListFromOrderList(it),
-                requireContext()
-            ) { orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
-        })
-
-        // Returning the root view of the binding
-        return binding.root
-    }
+    class ViewHolder(val binding: ItemOngoingOrderLayoutBinding) : RecyclerView.ViewHolder(binding.root)
 }
 
 ========================================
@@ -2047,22 +1958,16 @@ package com.canteenmanagment.utils
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import com.canteenmanagment.R
 import com.canteenmanagment.databinding.OrderDetailDiaologBoxBinding
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.WriterException
-import com.google.zxing.qrcode.QRCodeWriter
 
 class OrderDetailDialog(val context: Context) {
 
-    lateinit var alertDialog: Dialog
+    private lateinit var alertDialog: Dialog
     private lateinit var binding: OrderDetailDiaologBoxBinding
 
-    fun startDialog(orderId: String, transactionId: String) {
+    fun startDialog(orderDetails: String) {
         val dialog = AlertDialog.Builder(context)
 
         // Initialize ViewBinding
@@ -2071,16 +1976,8 @@ class OrderDetailDialog(val context: Context) {
 
         dialog.setView(view)
 
-        // Set transaction ID
-        binding.TVTransactionId.text = "Transaction id : $transactionId"
-
-        // Generate QR code using Zxing
-        try {
-            val bitmap = generateQRCode(orderId)
-            binding.IMQrCode.setImageBitmap(bitmap)
-        } catch (e: WriterException) {
-            Log.e("QR Code Error:", e.toString())
-        }
+        // Set order details
+        binding.TVOrderDetails.text = orderDetails
 
         // Show dialog
         alertDialog = dialog.create()
@@ -2093,29 +1990,7 @@ class OrderDetailDialog(val context: Context) {
             alertDialog.dismiss()
         }
     }
-
-    // Function to generate QR code using Zxing
-    private fun generateQRCode(content: String): Bitmap? {
-        val size = 900 // specify the desired size of the QR code
-        val qrCodeWriter = QRCodeWriter()
-        return try {
-            val bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, size, size)
-            val width = bitMatrix.width
-            val height = bitMatrix.height
-            val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-            for (x in 0 until width) {
-                for (y in 0 until height) {
-                    bmp.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
-                }
-            }
-            bmp
-        } catch (e: WriterException) {
-            Log.e("QR Code Generation", "Error generating QR code", e)
-            null
-        }
-    }
 }
-
 
 ========================================
 
@@ -2911,24 +2786,6 @@ File: app/src/main/res/layout/item_ongoing_order_layout.xml
                 app:layout_constraintTop_toTopOf="@+id/textView5" />
 
             <TextView
-                android:id="@+id/textView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transaction Id : "
-                android:layout_marginTop="@dimen/small"
-                android:textColor="@color/blackColour"
-                app:layout_constraintStart_toStartOf="@+id/textView5"
-                app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-            <TextView
-                android:id="@+id/TV_transaction_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="abcdefghijk"
-                app:layout_constraintStart_toEndOf="@+id/textView6"
-                app:layout_constraintTop_toTopOf="@+id/textView6" />
-
-            <TextView
                 android:id="@+id/TV_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -2944,8 +2801,8 @@ File: app/src/main/res/layout/item_ongoing_order_layout.xml
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/small"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/textView6"
-                app:layout_constraintTop_toBottomOf="@+id/textView6"
+                app:layout_constraintStart_toStartOf="@+id/textView5"
+                app:layout_constraintTop_toBottomOf="@+id/TV_price"
                 tools:text="abc X 2 \nxyz X 2\npqr X 3" />
 
             <TextView
@@ -2968,12 +2825,12 @@ File: app/src/main/res/layout/item_ongoing_order_layout.xml
                 android:text="Preparing"
                 android:textColor="@android:color/holo_orange_dark"/>
 
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>
 
 </layout>
+
 ========================================
 
 File: app/src/main/res/layout/fragment_menu.xml
@@ -3485,17 +3342,10 @@ File: app/src/main/res/layout/activity_user_order.xml
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.UserOrder.UserOrder">
-
-        <ImageView
-            android:id="@+id/IM_back"
-            style="@style/back_button_style"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        tools:context=".ui.UserOrder.MyOrderListFragment">
 
         <TextView
             android:id="@+id/TV_title"
@@ -3534,6 +3384,7 @@ File: app/src/main/res/layout/activity_user_order.xml
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <!-- RecyclerView for ready orders -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/RV_ready"
                     android:layout_width="match_parent"
@@ -3546,52 +3397,25 @@ File: app/src/main/res/layout/activity_user_order.xml
                     tools:itemCount="0"
                     tools:listitem="@layout/item_ongoing_order_layout" />
 
+                <!-- RecyclerView for ongoing orders -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/RV_preparing"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:itemCount="1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/RV_ready"
-                    tools:listitem="@layout/item_ongoing_order_layout" />
-
-                <TextView
-                    android:id="@+id/textView8"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/darker_gray"
-                    android:padding="@dimen/small"
-                    android:text="Past Order"
-                    android:textColor="@color/whiteColour"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/RV_preparing" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/RV_past_order"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView8"
                     tools:itemCount="1"
-                    tools:listitem="@layout/item_past_order_layout1" />
+                    tools:listitem="@layout/item_ongoing_order_layout" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.core.widget.NestedScrollView>
 
-
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 </layout>
+
 ========================================
 
 File: app/src/main/res/layout/item_past_order_layout2.xml
@@ -4591,56 +4415,47 @@ File: app/src/main/res/layout/activity_cart_food_list.xml
 File: app/src/main/res/layout/order_detail_diaolog_box.xml
 ----------------------------------------
 <?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent">
-
-    <androidx.cardview.widget.CardView
-        android:background="@android:color/white"
-        app:cardCornerRadius="@dimen/small"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:orientation="vertical">
 
-
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/medium"
-            android:backgroundTint="@color/whiteColour">
+            android:background="@android:color/white"
+            app:cardCornerRadius="@dimen/small">
 
-
-            <ImageView
-                android:id="@+id/IM_qr_code"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                app:layout_constraintBottom_toTopOf="@id/TV_transaction_id"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_margin="@dimen/medium"
+                android:backgroundTint="@color/whiteColour">
 
-            <TextView
-                android:id="@+id/TV_transaction_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:text="Trasaction id : 1943793021"
-                android:textSize="15sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/IM_qr_code" />
+                <!-- Add relevant views for ongoing order details here -->
+                <TextView
+                    android:id="@+id/TV_order_details"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Order Details"
+                    android:textSize="16sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-</LinearLayout>
+    </LinearLayout>
+</layout>
+
 ========================================
 
 File: app/src/main/res/layout/item_past_order_layout1.xml
