@@ -1,0 +1,5 @@
+<resources>
+    <declare-styleable name="CustomBottomMenu">
+        <attr name="cnb_iconColor" format="color"/>
+    </declare-styleable>
+</resources>

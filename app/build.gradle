@@ -1,0 +1,106 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'com.google.gms.google-services'
+    id 'kotlin-kapt'
+}
+
+android {
+
+    namespace "com.canteenmanagment"
+
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.canteenmanagment"
+        minSdkVersion 24
+        //noinspection EditedTargetSdkVersion,ExpiredTargetSdkVersion
+        targetSdk 33
+        versionCode 2
+        versionName "1.0.1"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test:runner:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation "com.airbnb.android:lottie:3.0.0"
+    implementation 'com.google.android.gms:play-services-auth:18.1.0'
+
+    //firebase
+    implementation 'com.google.firebase:firebase-firestore:21.5.0' // for data storage
+    implementation 'com.google.firebase:firebase-storage:19.2.0' //for file storage
+    implementation 'com.google.firebase:firebase-auth:19.4.0' // firebase auth
+    implementation 'com.google.firebase:firebase-auth:19.3.2'
+    implementation 'com.firebaseui:firebase-ui-auth:8.0.0' // Added Firebase UI Auth dependency
+    implementation 'com.google.firebase:firebase-analytics:17.5.0'
+    implementation 'com.google.firebase:firebase-auth-ktx:21.1.0'
+    implementation 'com.google.firebase:firebase-database-ktx:20.1.0'
+    implementation 'com.google.firebase:firebase-storage-ktx:20.1.0'
+
+    implementation 'com.github.PreetJagani:Canteen-managment-admin:v1.13' //github api library
+
+    //for card view
+    implementation 'com.google.android.material:material:1.2.1'
+
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9"
+
+    //glide to load image from url
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+
+    implementation "com.daimajia.easing:library:2.0@aar"
+    implementation "com.daimajia.androidanimations:library:2.3@aar"
+
+    //to convert object to string
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // Lifecycle components
+    implementation "android.arch.lifecycle:extensions:1.1.1"
+    kapt "android.arch.lifecycle:compiler:1.1.1"
+
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-beta01'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-beta01'
+
+    //animated fav button
+    implementation 'com.github.jd-alexander:LikeButton:0.2.3'
+
+    //qr code generator
+    implementation 'com.google.zxing:core:3.4.1'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0' // For Android-specific integrations
+
+    //firebase notification
+    implementation 'com.google.firebase:firebase-messaging:21.0.0'
+
+}
