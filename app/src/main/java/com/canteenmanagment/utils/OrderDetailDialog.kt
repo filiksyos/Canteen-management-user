@@ -1,8 +1,8 @@
 package com.canteenmanagment.utils
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
@@ -13,16 +13,16 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 
-class OrderDetailDialog(val activity: Activity) {
+class OrderDetailDialog(val context: Context) {
 
     lateinit var alertDialog: Dialog
     private lateinit var binding: OrderDetailDiaologBoxBinding
 
     fun startDialog(orderId: String, transactionId: String) {
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = AlertDialog.Builder(context)
 
         // Initialize ViewBinding
-        binding = OrderDetailDiaologBoxBinding.inflate(LayoutInflater.from(activity))
+        binding = OrderDetailDiaologBoxBinding.inflate(LayoutInflater.from(context))
         val view = binding.root
 
         dialog.setView(view)
@@ -45,7 +45,9 @@ class OrderDetailDialog(val activity: Activity) {
     }
 
     fun stopDialog() {
-        alertDialog.dismiss()
+        if (::alertDialog.isInitialized && alertDialog.isShowing) {
+            alertDialog.dismiss()
+        }
     }
 
     // Function to generate QR code using Zxing
@@ -69,3 +71,4 @@ class OrderDetailDialog(val activity: Activity) {
         }
     }
 }
+

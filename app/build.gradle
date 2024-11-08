@@ -70,6 +70,8 @@ dependencies {
 
     implementation 'com.github.PreetJagani:Canteen-managment-admin:v1.13' //github api library
 
+    implementation project(':canteen_managment_library')
+
     //for card view
     implementation 'com.google.android.material:material:1.2.1'
 

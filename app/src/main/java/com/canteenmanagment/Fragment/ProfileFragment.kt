@@ -10,20 +10,17 @@ import androidx.fragment.app.Fragment
 import com.canteenmanagment.MainActivity
 import com.canteenmanagment.databinding.FragmentProfileBinding
 import com.canteenmanagment.ui.FoodList.FoodListActivity
-import com.canteenmanagment.ui.UserOrder.UserOrder
 import com.google.firebase.auth.FirebaseAuth
-
 
 class ProfileFragment : Fragment() {
 
-    private var _binding : FragmentProfileBinding? = null
+    private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
 
         FirebaseAuth.getInstance().currentUser.let { firebaseUser ->
@@ -40,35 +37,26 @@ class ProfileFragment : Fragment() {
             activity?.finish()
         }
 
-        binding.TVMyOrder.setOnClickListener {
-            val i = Intent(context,UserOrder::class.java)
-            startActivity(i)
-        }
-
-        val versionName = context!!.packageManager
-            .getPackageInfo(context!!.packageName, 0).versionName
-
-        binding.TVVersion.text = "V" + versionName
+        // Removed TVMyOrder click listener as MyOrder is now handled in HomeActivity
+        val versionName = requireContext().packageManager
+            .getPackageInfo(requireContext().packageName, 0).versionName
+        binding.TVVersion.text = "V$versionName"
 
         binding.TVFav.setOnClickListener {
-            val i = Intent(context,FoodListActivity::class.java)
-            i.putExtra(FAVOURITE,true)
+            val i = Intent(context, FoodListActivity::class.java)
+            i.putExtra(FAVOURITE, true)
             startActivity(i)
         }
-
-
-
 
         return binding.root
     }
 
-    override fun onDestroy() {
+    override fun onDestroyView() {
         _binding = null
-        super.onDestroy()
+        super.onDestroyView()
     }
 
-    companion object{
+    companion object {
         const val FAVOURITE = "Favourite"
     }
-
 }
