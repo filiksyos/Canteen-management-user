@@ -1,6 +1,5 @@
 package com.canteenmanagment.ui.UserOrder
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -29,30 +28,23 @@ class UserOrderFragment : Fragment() {
         // ViewModel initialization
         viewmodel = ViewModelProvider(this).get(UserOrderViewModel::class.java)
 
-        // Initialize orderDetailDialog
+        // Initialize orderDetailDialog with simplified parameters
         orderDetailDialog = OrderDetailDialog(requireContext())
 
-        // Observing userPastOrderList and setting adapter
-        viewmodel.userPastOrderList.observe(viewLifecycleOwner, Observer {
-            binding.RVPastOrder.adapter = PastOrderRecyclerViewAdapter(
-                viewmodel.getHashmapFromList(it)
-            )
-        })
-
-        // Observing userInProgressOrder and setting adapter
-        viewmodel.userInProgressOrder.observe(viewLifecycleOwner, Observer {
+        // Observing ongoing orders
+        viewmodel.userInProgressOrder.observe(viewLifecycleOwner, Observer { inProgressOrders ->
             binding.RVPreparing.adapter = OnGoingOrderRecyclerViewAdapter(
-                viewmodel.getPastOrderListFromOrderList(it),
+                inProgressOrders,
                 requireContext()
-            ) { orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
+            ) { orderId -> orderDetailDialog.startDialog(orderId) }
         })
 
-        // Observing userReadyOrder and setting adapter
-        viewmodel.userReadyOrder.observe(viewLifecycleOwner, Observer {
+        // Observing ready orders
+        viewmodel.userReadyOrder.observe(viewLifecycleOwner, Observer { readyOrders ->
             binding.RVReady.adapter = OnGoingOrderRecyclerViewAdapter(
-                viewmodel.getPastOrderListFromOrderList(it),
+                readyOrders,
                 requireContext()
-            ) { orderId, transactionId -> orderDetailDialog.startDialog(orderId, transactionId) }
+            ) { orderId -> orderDetailDialog.startDialog(orderId) }
         })
 
         // Returning the root view of the binding

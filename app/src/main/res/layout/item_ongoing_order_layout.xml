@@ -38,24 +38,6 @@
                 app:layout_constraintTop_toTopOf="@+id/textView5" />
 
             <TextView
-                android:id="@+id/textView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transaction Id : "
-                android:layout_marginTop="@dimen/small"
-                android:textColor="@color/blackColour"
-                app:layout_constraintStart_toStartOf="@+id/textView5"
-                app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-            <TextView
-                android:id="@+id/TV_transaction_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="abcdefghijk"
-                app:layout_constraintStart_toEndOf="@+id/textView6"
-                app:layout_constraintTop_toTopOf="@+id/textView6" />
-
-            <TextView
                 android:id="@+id/TV_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -71,8 +53,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/small"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/textView6"
-                app:layout_constraintTop_toBottomOf="@+id/textView6"
+                app:layout_constraintStart_toStartOf="@+id/textView5"
+                app:layout_constraintTop_toBottomOf="@+id/TV_price"
                 tools:text="abc X 2 \nxyz X 2\npqr X 3" />
 
             <TextView
@@ -94,7 +76,6 @@
                 app:layout_constraintTop_toTopOf="parent"
                 android:text="Preparing"
                 android:textColor="@android:color/holo_orange_dark"/>
-
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
