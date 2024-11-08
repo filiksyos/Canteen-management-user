@@ -43,7 +43,7 @@ class HomeFragment : Fragment() {
         addCartCustomDialog = AddCartCustomDialog(activity as Activity, { food ->  addToFav(food) },{ food ->  removeFromFav(food) })
 
 
-        viewmodel.pastFoodList.observe(this, Observer {
+        viewmodel.pastFoodList.observe(viewLifecycleOwner, Observer {
             if (it.isNotEmpty())
                 binding.textView9.visibility = View.VISIBLE
 
@@ -63,7 +63,7 @@ class HomeFragment : Fragment() {
             }
         })
 
-        viewmodel.favFoodList.observe(this, Observer {
+        viewmodel.favFoodList.observe(viewLifecycleOwner, Observer {
             favFoodList = it as MutableList<Food>
 
             if (it.isNotEmpty())
@@ -86,7 +86,7 @@ class HomeFragment : Fragment() {
 
         })
 
-        viewmodel.foodList.observe(this, Observer {
+        viewmodel.foodList.observe(viewLifecycleOwner, Observer {
 
             if (it.isNotEmpty()){
                 binding.TVGreetings.visibility = View.VISIBLE
