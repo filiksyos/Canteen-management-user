@@ -1,49 +1,45 @@
-import os
+name: Generate Summary
 
-# Define the root paths for copying
-ROOT_BUILD_FILE = "build.gradle"
-APP_DIR = "app"
-EXCLUDE_DIR = "app/build"
-SUMMARY_FILE = "user_summary.txt"
+on:
+  push:
+    branches:
+      - '**'
 
-def should_include_file(file_path):
-    # Exclude files from the build directory within app
-    return EXCLUDE_DIR not in file_path
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-def get_files_to_include():
-    # Collect files from build.gradle and all files in app directory except app/build
-    files_to_include = []
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    # Add the root build.gradle file
-    if os.path.isfile(ROOT_BUILD_FILE):
-        files_to_include.append(ROOT_BUILD_FILE)
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
-    # Add all files in the app directory except the build directory
-    for root, _, files in os.walk(APP_DIR):
-        for file in files:
-            file_path = os.path.join(root, file)
-            if should_include_file(file_path):
-                files_to_include.append(file_path)
-    
-    return files_to_include
+    - name: Install dependencies
+      run: python -m pip install --upgrade pip
 
-def write_summary_file(files_to_include):
-    # Write content to user_summary.txt
-    with open(SUMMARY_FILE, 'w') as summary:
-        for file_path in files_to_include:
-            summary.write(f"File: {file_path}\n")
-            summary.write("-" * 40 + "\n")
-            try:
-                with open(file_path, 'r') as file_content:
-                    summary.write(file_content.read())
-            except Exception as e:
-                summary.write(f"Error reading file: {e}\n")
-            summary.write("\n" + "=" * 40 + "\n\n")
+    - name: Run file summary script
+      run: python file_summary.py
 
-def main():
-    files_to_include = get_files_to_include()
-    write_summary_file(files_to_include)
+    - name: Check for changes
+      id: check_changes
+      run: |
+        if [[ -n "$(git status --porcelain)" ]]; then
+          echo "changes_detected=true" >> $GITHUB_ENV
+        else
+          echo "changes_detected=false" >> $GITHUB_ENV
+        fi
 
-if __name__ == "__main__":
-    main()
-
+    - name: Commit and push changes
+      if: env.changes_detected == 'true'
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add user_summary.txt
+        git commit -m "Update user_summary.txt"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
