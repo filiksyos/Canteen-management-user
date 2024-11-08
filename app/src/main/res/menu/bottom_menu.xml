@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/home"
-        android:title="Home"
+        android:id="@+id/order"
+        android:title="order"
         android:icon="@drawable/ic_home_24px"
         app:cnb_iconColor="@color/colorPrimary"/>
 

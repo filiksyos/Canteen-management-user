@@ -24,12 +24,12 @@ class HomeActivity : BaseActivity() {
 
         // Load the default fragment
         openFragment(HomeFragment())
-        binding.bottomNavigationView.selectedItemId = R.id.home
+        binding.bottomNavigationView.selectedItemId = R.id.order
 
         // Set up navigation listener
         binding.bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.home -> openFragment(HomeFragment())
+                R.id.order -> openFragment(UserOrderFragment())
                 R.id.menu -> openFragment(MenuFragment())
                 R.id.profile -> openFragment(ProfileFragment())
                 else -> false
