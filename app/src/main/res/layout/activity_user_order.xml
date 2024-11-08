@@ -9,12 +9,6 @@
         android:layout_height="match_parent"
         tools:context=".ui.UserOrder.UserOrder">
 
-        <ImageView
-            android:id="@+id/IM_back"
-            style="@style/back_button_style"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <TextView
             android:id="@+id/TV_title"
             style="@style/sub_title_style"
