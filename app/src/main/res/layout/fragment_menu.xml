@@ -7,9 +7,9 @@
 
     <data>
         <variable name="Snacks" type="String" />
-        <variable name="Fix_thali" type="String" />
+        <variable name="Animal" type="String" />
         <variable name="Drinks" type="String" />
-        <variable name="Punjabi_meal" type="String" />
+        <variable name="Vegan" type="String" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -83,7 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitXY"
-                android:src="@drawable/fix_thali" />
+                android:src="@drawable/animal" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/CL2"
@@ -95,8 +95,8 @@
                     style="@style/menu_title_style"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{Fix_thali}"
-                    tools:text="Fix Thali"
+                    android:text="@{Animal}"
+                    tools:text="Animal"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -122,7 +122,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitXY"
-                android:src="@drawable/juice" />
+                android:src="@drawable/drinks" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/CL3"
@@ -163,7 +163,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitXY"
-                android:src="@drawable/sabji_roti" />
+                android:src="@drawable/vegan" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/CL4"
@@ -175,8 +175,8 @@
                     style="@style/menu_title_style"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{Punjabi_meal}"
-                    tools:text="Punjabi Meal"
+                    android:text="@{Vegan}"
+                    tools:text="Vegan"
                     android:textAlignment="center"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"

@@ -28,10 +28,12 @@ class MenuFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         _binding = FragmentMenuBinding.inflate(inflater,container,false)
 
 
+        // Bind category names to layout views for display
         binding.snacks = Food.Category.SNACKS.value
-        binding.fixThali = Food.Category.FIX_THALI.value
+        binding.animal = Food.Category.ANIMAL.value
         binding.drinks = Food.Category.DRINKS.value
-        binding.punjabiMeal = Food.Category.PUNJABI_MEAL.value
+        binding.vegan = Food.Category.VEGAN.value
+
 
         binding.CL1.setOnClickListener(this)
         binding.CL2.setOnClickListener(this)
@@ -57,7 +59,7 @@ class MenuFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity as Activity,binding.CL1,"open_transition")
             }
             R.id.CL2 -> {
-                i.putExtra(CATEGORY_NAME,Food.Category.FIX_THALI.value)
+                i.putExtra(CATEGORY_NAME,Food.Category.ANIMAL.value)
                 options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity as Activity,binding.CL2,"open_transition")
             }
             R.id.CL3 ->{
@@ -65,7 +67,7 @@ class MenuFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity as Activity,binding.CL3,"open_transition")
             }
             R.id.CL4 -> {
-                i.putExtra(CATEGORY_NAME,Food.Category.PUNJABI_MEAL.value)
+                i.putExtra(CATEGORY_NAME,Food.Category.VEGAN.value)
                 options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity as Activity,binding.CL4,"open_transition")
             }
         }

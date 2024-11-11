@@ -63,9 +63,8 @@ data class Food(
 
     enum class Category(val value : String) {
         SNACKS("Snacks"),
-        FIX_THALI("Fix Thali"),
+        ANIMAL("Animal"),
         DRINKS("Drinks"),
-        PUNJABI_MEAL("Punjabi Meal")
+        VEGAN("Vegan")
     }
-
 }

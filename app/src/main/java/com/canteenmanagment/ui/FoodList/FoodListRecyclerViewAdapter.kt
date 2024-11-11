@@ -21,7 +21,7 @@ class FoodListRecyclerViewAdapter(val foodList : List<Food>, val listner: ClickL
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.binding.TVTitle.text = foodList.get(position).name
-        holder.binding.TVPrice.text = foodList.get(position).price.toString() + " Rs."
+        holder.binding.TVPrice.text = foodList.get(position).price.toString() + " Birr."
 
         if(!foodList.get(position).available){
             holder.binding.TVNotAvailable.visibility = View.VISIBLE
