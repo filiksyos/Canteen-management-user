@@ -23,7 +23,7 @@ class OnGoingOrderRecyclerViewAdapter(
         val order = onGoingOrderList[position]
 
         holder.binding.TVOrderId.text = order.id ?: "N/A"
-        holder.binding.TVPrice.text = "${calculateTotalAmount(order.foodList ?: mutableListOf())} Rs."
+        holder.binding.TVPrice.text = "${calculateTotalAmount(order.foodList ?: mutableListOf())} Birr."
         holder.binding.TVTime.text = (order.time ?: "N/A").toString()
 
         // Format food list as a string for display

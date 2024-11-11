@@ -51,6 +51,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
+
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
@@ -68,7 +69,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-database-ktx:20.1.0'
     implementation 'com.google.firebase:firebase-storage-ktx:20.1.0'
 
-    implementation 'com.github.PreetJagani:Canteen-managment-admin:v1.13' //github api library
+    //implementation 'com.github.PreetJagani:Canteen-managment-admin:v1.13' //github api library
 
     implementation project(':canteen_managment_library')
 
